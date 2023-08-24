@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using SFS.Parts.Modules;
+using System.Collections.Generic;
 
 namespace LogicGateInjector
 {
@@ -17,17 +18,17 @@ namespace LogicGateInjector
             foreach (GameObject go in outputs)
             {
                 if (go)
-                    go.transform.localPosition = new Vector3(go.transform.localPosition.x, value ? 0f : (0.1f * mult), go.transform.localPosition.z); ;
+                    go.transform.localPosition = new Vector3(go.transform.localPosition.x, value ? 0f : (0.1f * mult), go.transform.localPosition.z);
             }
         }
 
-        public void Update()
+        public void FixedUpdate()
         {
             switch (gate)
             {
                 case GateType.Wire:
                     bool found = false;
-                    foreach (var input in inputs) 
+                    foreach (var input in inputs)
                     {
                         if (input)
                         {
@@ -47,7 +48,7 @@ namespace LogicGateInjector
                 case GateType.OR:
                     SetAllOutputs(inputs[0].enab || inputs[1].enab);
                     break;
-                
+
                 case GateType.NOT:
                     SetAllOutputs(!inputs[0].enab);
                     break;
@@ -85,6 +86,13 @@ namespace LogicGateInjector
         MagnetOutput
     }
 
+    public class ExternalModule : MonoBehaviour
+    {
+        public int moduleType;
+
+        public List<UnityEngine.Object> vars = new List<UnityEngine.Object>();
+    }
+
     public class OutputModule : MonoBehaviour
     {
         public GameObject modelEnabled;
@@ -120,6 +128,8 @@ namespace LogicGateInjector
         public int inputID;
 
         public LogicGateModule lgm;
+
+        public int inputCount;
         
 
         private void Start()
@@ -135,7 +145,10 @@ namespace LogicGateInjector
 
         public void FixedUpdate()
         {
-            
+            if (inputCount > 0)
+                enab = true;
+            else
+                enab = false;
         }
 
         public void OnTriggerEnter2D(Collider2D other)
@@ -144,7 +157,7 @@ namespace LogicGateInjector
             {
                 return;
             } // Stop the magnets from interfering with the DP converter input 
-            enab = true;
+            inputCount ++;
         }
         public void OnTriggerExit2D(Collider2D other)
         {
@@ -152,7 +165,7 @@ namespace LogicGateInjector
             {
                 return;
             } // Stop the magnets from interfering with the DP converter input 
-            enab = false;
+            inputCount --;
         }
     }
 }
