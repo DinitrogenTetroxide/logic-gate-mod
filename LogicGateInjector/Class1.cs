@@ -153,18 +153,20 @@ namespace LogicGateInjector
 
         public void OnTriggerEnter2D(Collider2D other)
         {
-            if (lgm.gate == GateType.MagnetOutput && other.GetComponentInChildren<DockingPortTrigger>() != null) 
-            {
-                return;
-            } // Stop the magnets from interfering with the DP converter input 
+            if (lgm)
+                if (lgm.gate == GateType.MagnetOutput && other.GetComponentInChildren<DockingPortTrigger>() != null) 
+                {
+                    return;
+                } // Stop the magnets from interfering with the DP converter input 
             inputCount ++;
         }
         public void OnTriggerExit2D(Collider2D other)
         {
-            if (lgm.gate == GateType.MagnetOutput && other.GetComponentInChildren<DockingPortTrigger>() != null)
-            {
-                return;
-            } // Stop the magnets from interfering with the DP converter input 
+            if (lgm)
+                if (lgm.gate == GateType.MagnetOutput && other.GetComponentInChildren<DockingPortTrigger>() != null)
+                {
+                    return;
+                } // Stop the magnets from interfering with the DP converter input 
             inputCount --;
         }
     }
