@@ -123,13 +123,11 @@ namespace LogicGateInjector
         private int layer;
         private CircleCollider2D trigger;
 
-        public bool enab;
+        [HideInInspector] public bool enab;
 
         public int inputID;
 
         public LogicGateModule lgm;
-
-        public int inputCount;
         
 
         private void Start()
@@ -145,29 +143,29 @@ namespace LogicGateInjector
 
         public void FixedUpdate()
         {
-            if (inputCount > 0)
-                enab = true;
-            else
-                enab = false;
         }
 
         public void OnTriggerEnter2D(Collider2D other)
         {
             if (lgm)
-                if (lgm.gate == GateType.MagnetOutput && other.GetComponentInChildren<DockingPortTrigger>() != null) 
-                {
-                    return;
-                } // Stop the magnets from interfering with the DP converter input 
-            inputCount ++;
-        }
-        public void OnTriggerExit2D(Collider2D other)
-        {
-            if (lgm)
+            {
                 if (lgm.gate == GateType.MagnetOutput && other.GetComponentInChildren<DockingPortTrigger>() != null)
                 {
                     return;
                 } // Stop the magnets from interfering with the DP converter input 
-            inputCount --;
+            }
+            enab = true;
+        }
+        public void OnTriggerExit2D(Collider2D other)
+        {
+            if (lgm)
+            {
+                if (lgm.gate == GateType.MagnetOutput && other.GetComponentInChildren<DockingPortTrigger>() != null)
+                {
+                    return;
+                } // Stop the magnets from interfering with the DP converter input 
+            }
+            enab = false;
         }
     }
 }
