@@ -32,8 +32,16 @@ namespace LogicGateModules
                                     am.vars = exMod.vars;
                                     break;
                                 case 2:
-                                    var em = exMod.GetOrAddComponent<LogicEngineModule>();
-                                    em.vars = exMod.vars;
+                                    var lem = exMod.GetOrAddComponent<LogicEngineModule>();
+                                    lem.vars = exMod.vars;
+                                    break;
+                                case 3:
+                                    var dm = exMod.GetOrAddComponent<SignalDelayerModule>();
+                                    dm.vars = exMod.vars;
+                                    break;
+                                case 4:
+                                    var wlm = exMod.GetOrAddComponent<WireLengthModule>();
+                                    wlm.vars = exMod.vars;
                                     break;
                             }
                         }

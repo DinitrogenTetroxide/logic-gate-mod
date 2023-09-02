@@ -1,7 +1,8 @@
 fileFormatVersion: 2
-guid: 82943a690b5f1a24ab3c4560480ca3f4
-PrefabImporter:
+guid: c21bd51bd82caae45aeaa5ac20067576
+NativeFormatImporter:
   externalObjects: {}
+  mainObjectFileID: 11400000
   userData: 
   assetBundleName: logic-mod
   assetBundleVariant: 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LogicData
   m_EditorClassIdentifier: 
   DisplayName: Logic Gate Mod
-  Version: v0.5
+  Version: v0.6
   Description: Adds logic gates to SFS
   Author: N2O4, Fusion
   ShowIcon: 0

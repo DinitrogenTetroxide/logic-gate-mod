@@ -1,14 +1,12 @@
-﻿using System.Reflection;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 using LogicGateInjector;
 using SFS.World;
 using SFS.Variables;
 using System;
 using Object = UnityEngine.Object;
 using SFS.Parts.Modules;
-using Cysharp.Threading.Tasks.Triggers;
+using System.Net.Sockets;
 
 namespace LogicGateModules
 {
@@ -16,8 +14,11 @@ namespace LogicGateModules
     {
         public List<Object> vars = new List<Object>();
         public abstract int Id();
+
+        public bool outValue = false;
         public void SetOutputs(bool value, float multiplier = 1f)
         {
+            outValue = value;
             for (int i = 0; i < Mathf.Min(vars.Count, 4); i++) // by default, the first 4 variables should be outputs as GOs
             {
                 if (vars[i] is GameObject go && go != null)
@@ -26,6 +27,8 @@ namespace LogicGateModules
                 }
             }
         }
+
+        public void ToggleOutputs(float mult) => SetOutputs(!outValue, mult);
         public bool[] GetInputs()
         {
             List<bool> result = new List<bool>();
@@ -89,6 +92,112 @@ namespace LogicGateModules
             }
 
             em.engineOn.Value = GetInputs()[0] && canRun;
+        }
+    }
+
+    public class SignalDelayerModule : CustomModuleBase
+    {
+        public override int Id() => 3;
+
+        bool inputState;
+
+        float inputDelay;
+
+        public void FixedUpdate()
+        {
+            inputDelay = (float) GetComponentInChildren<VariablesModule>()
+                .doubleVariables
+                .GetValue("delay");
+
+            if (inputState != GetInputs()[0])
+            {
+                Invoke(nameof(ToggleState), inputDelay);
+            }
+
+            inputState = GetInputs()[0];
+        }
+
+        public void ToggleState()
+        {
+            ToggleOutputs(1f);
+        }
+
+    }
+    public class WireLengthModule : CustomModuleBase
+    {
+        public override int Id() => 4;
+
+        GameObject inputArrow;
+        GameObject input;
+
+        VariablesModule vm;
+
+        float length;
+
+        public void Start()
+        {
+            inputArrow = vars[1] as GameObject;
+            input = vars[0] as GameObject;
+            vm = GetComponent<VariablesModule>();
+        }
+        public void Update()
+        {
+            length = (float)vm.doubleVariables.GetValue("length");
+            inputArrow.transform.localPosition = new Vector3(inputArrow.transform.localPosition.x, length - 0.2f, inputArrow.transform.localPosition.z);
+            input.transform.localPosition = new Vector3(input.transform.localPosition.x, length, input.transform.localPosition.z);
+            GetComponent<MagnetModule>().points[0].position.y.Value = length;
+
+        }
+    }
+
+    public class AngleSensorModule : CustomModuleBase
+    {
+        public override int Id() => 1;
+
+        Rocket rkt;
+        VariablesModule vm;
+
+        public void Update()
+        {
+            try
+            {
+                rkt = PlayerController.main.player.Value as Rocket;
+                vm = GetComponent<VariablesModule>();
+
+                float minAng = (float)vm.doubleVariables.GetValue("minAngle");
+                float maxAng = (float)vm.doubleVariables.GetValue("maxAngle");
+
+                if (vm.boolVariables.GetValue("localAngle"))
+                {
+                    // Local rotation code by NeptuneSky
+                    float globalAngle = NormalizeAngle(rkt.partHolder.transform.eulerAngles.z);
+                    Location location = rkt.location.Value;
+
+                    Vector2 orbitAngleVector = new Vector2(Mathf.Cos((float)location.position.AngleRadians), Mathf.Sin((float)location.position.AngleRadians)).Rotate_Radians(270 * Mathf.Deg2Rad);
+                    var facing = new Vector2(Mathf.Cos(globalAngle * Mathf.Deg2Rad), Mathf.Sin(globalAngle * Mathf.Deg2Rad));
+                    float localRot = Vector2.SignedAngle(facing, orbitAngleVector);
+
+                    bool b1 = NormalizeAngle(localRot) >= minAng;
+                    bool b2 = NormalizeAngle(localRot) <= maxAng;
+
+                    SetOutputs(b1 && b2);
+                }
+                else
+                {
+                    bool b3 = NormalizeAngle(rkt.rb2d.rotation) >= minAng;
+                    bool b4 = NormalizeAngle(rkt.rb2d.rotation) <= maxAng;
+
+                    SetOutputs(b3 && b4);
+                }
+            }
+            catch { }
+        }
+
+        float NormalizeAngle(float a)
+        {
+            while (a < 0) { a += 360; }
+            while (a >= 360) { a -= 360; }
+            return a - 180;
         }
     }
 }
