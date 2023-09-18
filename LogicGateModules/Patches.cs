@@ -3,9 +3,27 @@ using SFS.Parts;
 using Cysharp.Threading.Tasks;
 using LogicGateInjector;
 using SFS;
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace LogicGateModules
 {
+    public static class GameObjectUtility
+    {
+        public static Component GetOrAddComponent(this Component origin, Type toAdd)
+        {
+            var value = origin.GetComponent(toAdd);
+
+            if (!value)
+            {
+                value = origin.gameObject.AddComponent(toAdd);
+            }
+
+            return value;
+        }
+    }
     public class Patches
     {
         [HarmonyPatch(typeof(CustomAssetsLoader), "LoadAllCustomAssets")]
@@ -23,30 +41,34 @@ namespace LogicGateModules
                         exMod = part.GetComponentInChildren<ExternalModule>();
                         if (exMod)
                         {
-                            switch (exMod.moduleType)
+                            foreach (var type in GetModules()) 
                             {
-                                case 0:
-                                    break;
-                                case 1:
-                                    var am = exMod.GetOrAddComponent<AltimeterModule>();
-                                    am.vars = exMod.vars;
-                                    break;
-                                case 2:
-                                    var lem = exMod.GetOrAddComponent<LogicEngineModule>();
-                                    lem.vars = exMod.vars;
-                                    break;
-                                case 3:
-                                    var dm = exMod.GetOrAddComponent<SignalDelayerModule>();
-                                    dm.vars = exMod.vars;
-                                    break;
-                                case 4:
-                                    var wlm = exMod.GetOrAddComponent<WireLengthModule>();
-                                    wlm.vars = exMod.vars;
-                                    break;
+                                CustomModuleBase cb = exMod.GetOrAddComponent(type) as CustomModuleBase;
+                                if (cb.Id() != exMod.moduleType)
+                                {
+                                    UnityEngine.Object.Destroy(cb);
+                                } else
+                                {
+                                    cb.vars = exMod.vars;
+                                }
                             }
                         }
                     }
                 });
+            }
+            private static Type[] GetModules()
+            {
+                List<Type> result = new List<Type>();
+                Assembly logicModAsm = Assembly.GetExecutingAssembly();
+                foreach(Type type in logicModAsm.GetTypes())
+                {
+                    if (type.IsSubclassOf(typeof(CustomModuleBase)))
+                    {
+                        result.Add(type);
+                    }
+                }
+
+                return result.ToArray();
             }
         }
     }

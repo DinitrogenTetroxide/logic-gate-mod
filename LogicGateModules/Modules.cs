@@ -152,7 +152,7 @@ namespace LogicGateModules
 
     public class AngleSensorModule : CustomModuleBase
     {
-        public override int Id() => 1;
+        public override int Id() => 5;
 
         Rocket rkt;
         VariablesModule vm;
